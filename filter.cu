@@ -40,9 +40,8 @@ __global__ void filter_constant(unsigned char *a, unsigned char *b, int nx,
  * @param nx image length
  */
 __constant__ float fc[9];
-__global__ void filter_global(const std::vector<unsigned char> &a,
-                std::vector<unsigned char> &b, int nx, int ny,
-                const std::vector<float> &c) {
+__global__ void filter_global(unsigned char *a, unsigned char *b, int nx,
+                              int ny, float &c) {
   auto idx = [&nx](int y,int x){ return y*nx+x; };
 
   int x = blockIdx.x*blockDim.x+threadIdx.x;
