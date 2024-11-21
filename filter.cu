@@ -41,7 +41,7 @@ __global__ void filter_constant(unsigned char *a, unsigned char *b, int nx,
  */
 __constant__ float fc[9];
 __global__ void filter_global(unsigned char *a, unsigned char *b, int nx,
-                              int ny, float &c) {
+                              int ny, float *c) {
   auto idx = [&nx](int y,int x){ return y*nx+x; };
 
   int x = blockIdx.x*blockDim.x+threadIdx.x;
