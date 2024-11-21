@@ -126,6 +126,9 @@ int main() {
   unsigned char *d_a = nullptr, *d_b = nullptr;
   cudaMalloc(&d_a, size * sizeof(unsigned char));
   cudaMalloc(&d_b, size * sizeof(unsigned char));
+  float* d_c = nullptr;
+  cudaMalloc(&d_c, 9 * sizeof(float));
+  cudaMemcpy(d_c, h_c.data(), 9 * sizeof(float), cudaMemcpyHostToDevice);
 
   // Copy data to device
   cudaMemcpyToSymbol(fc, h_c.data(), 9 * sizeof(float));
@@ -143,7 +146,7 @@ int main() {
   cudaEventRecord(start, 0);
 
   // TODO: Launch filter kernel
-  filter_global<<<gridDim, blockDim>>>(d_a, d_b, nx, ny, h_c);
+  filter_global<<<gridDim, blockDim>>>(d_a, d_b, nx, ny, d_c);
 
   // GPU timing
   cudaEventRecord(stop, 0);
