@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono>
 #include <stdio.h>
 #include <vector>
 
@@ -142,7 +143,7 @@ int main() {
   cudaEventRecord(start, 0);
 
   // TODO: Launch filter kernel
-  filter_global<<<gridDim, blockDim>>>(d_a, d_b, nx, ny);
+  filter_global<<<gridDim, blockDim>>>(d_a, d_b, nx, ny, h_c);
 
   // GPU timing
   cudaEventRecord(stop, 0);
