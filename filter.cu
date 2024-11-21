@@ -140,6 +140,7 @@ int main() {
   // dim3 grid((nx + 64 - 1) / 64, (ny + 16 - 1) / 16);
 
   // GPU timing
+  CALI_MARK_BEGIN("filter_global");
   cudaEvent_t start, stop;
   cudaEventCreate(&start);
   cudaEventCreate(&stop);
@@ -151,6 +152,7 @@ int main() {
   // GPU timing
   cudaEventRecord(stop, 0);
   cudaEventSynchronize(stop);
+  CALI_MARK_END("filter_global");
   float gpu_elapsed = 0;
   cudaEventElapsedTime(&gpu_elapsed, start, stop);
   std::cout << "GPU time: " << gpu_elapsed / 1000.0f << "s\n";
@@ -162,7 +164,7 @@ int main() {
   cudaFree(d_b);
 
   // TODO: Check result
-  bool flag = false;
+  bool flag = true;
   for (int i = 0; i < size; ++i) {
     if (h_b_cpu[i] != h_b_gpu[i]) {
       std::cout << "Verification failed at index " << i << "CPU: " << (int)h_b_cpu[i] << ", GPU: " << (int)h_b_gpu[i] << std::endl;
