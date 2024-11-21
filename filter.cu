@@ -146,7 +146,7 @@ int main() {
   cudaEventRecord(start, 0);
 
   // TODO: Launch filter kernel
-  filter_global<<<gridDim, blockDim>>>(d_a, d_b, nx, ny, d_c);
+  filter_global<<<grid, block>>>(d_a, d_b, nx, ny, d_c);
 
   // GPU timing
   cudaEventRecord(stop, 0);
