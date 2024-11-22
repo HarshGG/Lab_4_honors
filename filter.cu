@@ -142,7 +142,7 @@ __global__ void filter_global(unsigned char *a, unsigned char *b, int nx,
  * @param nx image width
  * @param ny image length
  */
-void applyFilter(std::vector<unsigned char> &b, const std::vector<unsigned char> &a, int nx, int ny,
+void filter_CPU(std::vector<unsigned char> &b, const std::vector<unsigned char> &a, int nx, int ny,
                  const std::vector<float> &c, int filter_size) {
   auto idx = [nx](int y, int x) { return y * nx + x; };
 
