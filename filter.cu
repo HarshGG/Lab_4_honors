@@ -116,12 +116,10 @@ int main(int argc, char *argv[]) {
   // Create caliper ConfigManager object
   cali::ConfigManager mgr;
   mgr.start();
-  std::cout << argc << " " << argv[1] << std::endl;
 
   // Image size
   int nx = atoi(argv[1]);
   int ny = nx;
-  std::cout << nx << " " << ny << std::endl;
   int size = nx * ny;
 
   float kernel_time_global = 1.0f;
@@ -177,6 +175,8 @@ int main(int argc, char *argv[]) {
   cudaEventSynchronize(stop);
   CALI_MARK_END("kernel_global");
   cudaEventElapsedTime(&kernel_time_global, start, stop);
+  // TODO: Copy result back to host
+  cudaMemcpy(h_b_gpu.data(), d_b, size * sizeof(unsigned char), cudaMemcpyDeviceToHost);
   std::cout << "Global time: " << kernel_time_global / 1000.0f << "s\n";
   // TODO: Check result
   bool flag = true;
