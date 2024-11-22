@@ -161,7 +161,12 @@ void filter_CPU(const std::vector<unsigned char> &a,
               int filterIndex = idx(dy + radius, dx + radius, filterSize);
 
               // Accumulate the weighted pixel intensity
-              v += c[filterIndex] * a[idx(sourceY, sourceX, nx)];
+              v += c[filterIndex] * a[idx(sourceY, sourceX)];
+              if (x < 3 && y < 3) {  // Limit output to the first few pixels
+                  std::cout << "Pixel (" << sourceY << ", " << sourceX << ") Coeff: " 
+                            << c[filterIndex] << " Pixel Value: " << a[idx(sourceY, sourceX)] 
+                            << " Contrib: " << (coefficient * pixelValue) << " Current Sum: " << v << std::endl;
+              }
           }
       }
       uint f = (uint)(v + 0.5f);
