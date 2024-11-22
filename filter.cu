@@ -7,8 +7,6 @@
 #include <caliper/cali-manager.h>
 #include <caliper/cali.h>
 
-
-
 /**
  * @brief Implemenation using shared memory for image and constant memory for
  * filter
@@ -28,8 +26,27 @@ __global__ void filter_shared(unsigned char *a, unsigned char *b, int nx,
  * @param nx image width
  * @param nx image length
  */
+ __constant__ float fc[9];
 __global__ void filter_constant(unsigned char *a, unsigned char *b, int nx,
-                                int ny) {}
+                                int ny) {
+    auto idx = [&nx](int y,int x){ return y*nx+x; };
+
+    int x = blockIdx.x*blockDim.x+threadIdx.x;
+    int y = blockIdx.y*blockDim.y+threadIdx.y;
+
+    if(x<0 || y <0 || x >= nx || y >= ny)return;
+
+    int xl = max(0,x-1); int yl = max(0,y-1);
+    int xh = min(nx-1,x+1); int yh = min(ny-1,y+1);
+
+    float v = fc[0]*a[idx(yl,xl)] + fc[1]*a[idx(yl,x)] + fc[2]*a[idx(yl,xh)] +
+    fc[3]*a[idx(y,xl)] + fc[4]*a[idx(y,x)] + fc[5]*a[idx(y,xh)] +
+    fc[6]*a[idx(yh,xl)] + fc[7]*a[idx(yh,x)] + fc[8]*a[idx(yh,xh)];
+
+    uint f = (uint)(v+0.5f);
+
+    b[idx(y,x)] = (unsigned char)min(255,max(0,f));
+  }
 
 /**
  * @brief Implemenation using global memory fir filter and image
@@ -39,7 +56,7 @@ __global__ void filter_constant(unsigned char *a, unsigned char *b, int nx,
  * @param nx image width
  * @param nx image length
  */
-__constant__ float fc[9];
+
 __global__ void filter_global(unsigned char *a, unsigned char *b, int nx,
                               int ny, float *c) {
   auto idx = [&nx](int y,int x){ return y*nx+x; };
@@ -93,7 +110,7 @@ void filter_CPU(const std::vector<unsigned char> &a,
   }
 }
 
-int main() {
+int main(int argc, char *argv[]) {
   CALI_CXX_MARK_FUNCTION;
 
   // Create caliper ConfigManager object
@@ -101,9 +118,14 @@ int main() {
   mgr.start();
 
   // Image size
-  int nx = 1024;
-  int ny = 1024;
+  int nx = argv[1];
+  int ny = argv[1];
+  int type_of_filter = argv[2];
   int size = nx * ny;
+
+  float kernel_time_global = 0.0f;
+  float kernel_time_constant = 0.0f;
+  float kernel_time_shared = 0.0f;
 
   std::vector<unsigned char> h_a(size, 0); // Input image
   std::vector<unsigned char> h_b_cpu(size, 0); // Output image (CPU)
@@ -139,8 +161,8 @@ int main() {
   dim3 grid((nx + block.x - 1) / block.x, (ny + block.y - 1) / block.y);
   // dim3 grid((nx + 64 - 1) / 64, (ny + 16 - 1) / 16);
 
-  // GPU timing
-  CALI_MARK_BEGIN("filter_global");
+  // global timing
+  CALI_MARK_BEGIN("kernel_global");
   cudaEvent_t start, stop;
   cudaEventCreate(&start);
   cudaEventCreate(&stop);
@@ -149,13 +171,26 @@ int main() {
   // TODO: Launch filter kernel
   filter_global<<<grid, block>>>(d_a, d_b, nx, ny, d_c);
 
-  // GPU timing
+  // global timing
   cudaEventRecord(stop, 0);
   cudaEventSynchronize(stop);
-  CALI_MARK_END("filter_global");
-  float gpu_elapsed = 0;
-  cudaEventElapsedTime(&gpu_elapsed, start, stop);
+  CALI_MARK_END("kernel_global");
+  cudaEventElapsedTime(&kernel_time_global, start, stop);
   std::cout << "GPU time: " << gpu_elapsed / 1000.0f << "s\n";
+
+  // constant timing
+  CALI_MARK_BEGIN("kernel_constant");
+  cudaEventRecord(start, 0);
+
+  // TODO: Launch filter kernel
+  filter_constant<<<grid, block>>>(d_a, d_b, nx, ny);
+
+  // constant timing
+  cudaEventRecord(stop, 0);
+  cudaEventSynchronize(stop);
+  CALI_MARK_END("kernel_constant");
+  cudaEventElapsedTime(&kernel_time_constant, start, stop);
+  std::cout << "GPU time: " << kernel_time_constant / 1000.0f << "s\n";
 
   // TODO: Copy result back to host
   cudaMemcpy(h_b_gpu.data(), d_b, size * sizeof(unsigned char), cudaMemcpyDeviceToHost);
@@ -179,6 +214,22 @@ int main() {
 
   cudaEventDestroy(start);
   cudaEventDestroy(stop);
+
+  float effective_bandwidth = 0.0f;
+
+  if(global) {
+    numerator = 9 * sizeof(unsigned char) + 1 * sizeof(unsigned char) + 9 * sizeof(float);
+    effective_bandwidth = numerator / (kernel_time * 1e6);
+  }
+
+  adiak::init(NULL);
+  adiak::value('image_size', nx);
+  adiak::value('kernel_time', kernel_time);
+  adiak::value('effective_bandwidth', effective_bandwidth);
+  adiak::value('kernel_time_global', kernel_time_global);
+  adiak::value('kernel_time_constant', kernel_time_constant);
+  adiak::value('kernel_time_shared', kernel_time_shared);
+  
 
   // Flush Caliper output
   mgr.stop();
