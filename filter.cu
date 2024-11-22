@@ -16,7 +16,62 @@
  * @param nx image length
  */
 __global__ void filter_shared(unsigned char *a, unsigned char *b, int nx,
-                              int ny) {}
+                              int ny) {
+    __shared__ uchar4 shared_arr[16 + 2][64 + 2];
+
+    int thread_x = threadIdx.x;
+    int thread_y = threadIdx.y;
+
+    int x = blockIdx.x * blockDim.x + thread_x;
+    int y = blockIdx.y * blockDim.y + thread_y;
+
+    if (x >= nx || y >= ny) {
+      return;
+    } 
+
+    shared_arr[thread_y + 1][thread_x + 1] = make_uchar4(a[y * nx + x], 0, 0, 0);
+
+    if (thread_x == 0) {
+      shared_arr[thread_y + 1][0] = make_uchar4(a[y * nx + max(x - 1, 0)], 0, 0, 0);
+    }
+    if (thread_x == blockDim.x - 1) {
+      shared_arr[thread_y + 1][blockDim.x + 1] = make_uchar4(a[y * nx + min(x + 1, nx - 1)], 0, 0, 0);
+    }
+    if (thread_y == 0) {
+      shared_arr[0][thread_x + 1] = make_uchar4(a[max(y - 1, 0) * nx + x], 0, 0, 0);
+    }
+    if (thread_y == blockDim.y - 1) {
+      shared_arr[blockDim.y + 1][thread_x + 1] = make_uchar4(a[min(y + 1, ny - 1) * nx + x], 0, 0, 0);
+    }
+
+
+    if (thread_x == 0 && thread_y == 0) {
+      shared_arr[0][0] = make_uchar4(a[max(y - 1, 0) * nx + max(x - 1, 0)], 0, 0, 0);
+    }
+    if (thread_x == blockDim.x - 1 && thread_y == 0) {
+      shared_arr[0][blockDim.x + 1] = make_uchar4(a[max(y - 1, 0) * nx + min(x + 1, nx - 1)], 0, 0, 0);
+    }
+    if (thread_x == 0 && thread_y == blockDim.y - 1) {
+      shared_arr[blockDim.y + 1][0] = make_uchar4(a[min(y + 1, ny - 1) * nx + max(x - 1, 0)], 0, 0, 0);
+    }
+    if (thread_x == blockDim.x - 1 && thread_y == blockDim.y - 1) {
+      shared_arr[blockDim.y + 1][blockDim.x + 1] = make_uchar4(a[min(y + 1, ny - 1) * nx + min(x + 1, nx - 1)], 0, 0, 0);
+    }
+
+    __syncthreads();
+
+    float sum = 0.0f;
+
+    for (int i = -1; i <= 1; i++) {
+      for (int j = -1; j <= 1; j++) {
+        sum += d_filter[(i + 1) * 3 + (j + 1)] * shared_arr[thread_y + 1 + i][thread_x + 1 + j].x;
+      }
+    }
+
+    b[y * nx + x] = (unsigned char)min
+    (255, max(0, (int)(sum + 0.5f)));
+
+  }
 
 /**
  * @brief Implemenation using global memory for image and constant memory for
@@ -226,6 +281,40 @@ int main(int argc, char *argv[]) {
     std::cout << "Verification passed" << std::endl;
   }
 
+  // shared timing
+  CALI_MARK_BEGIN("kernel_constant");
+  cudaEventRecord(start, 0);
+
+  // TODO: Launch filter kernel
+  filter_shared<<<grid, block>>>(d_a, d_b, nx, ny);
+
+  // constant timing
+  cudaEventRecord(stop, 0);
+  cudaEventSynchronize(stop);
+  CALI_MARK_END("kernel_shared");
+  cudaEventElapsedTime(&kernel_time_shared, start, stop);
+  std::cout << "Shared time: " << kernel_time_shared / 1000.0f << "s\n";
+
+  // TODO: Copy result back to host
+  cudaMemcpy(h_b_gpu.data(), d_b, size * sizeof(unsigned char), cudaMemcpyDeviceToHost);
+
+  cudaFree(d_a);
+  cudaFree(d_b);
+
+  // TODO: Check result
+  flag = true;
+  for (int i = 0; i < size; ++i) {
+    if (h_b_cpu[i] != h_b_gpu[i]) {
+      std::cout << "Verification failed at index " << i << "CPU: " << (int)h_b_cpu[i] << ", Shared: " << (int)h_b_gpu[i] << std::endl;
+      flag = false;
+      break;
+    }
+  }
+
+  if (flag) {
+    std::cout << "Verification passed" << std::endl;
+  }
+
   cudaEventDestroy(start);
   cudaEventDestroy(stop);
 
@@ -234,7 +323,8 @@ int main(int argc, char *argv[]) {
 
   numerator = 9 * sizeof(unsigned char) + 1 * sizeof(unsigned char);
   float effective_bandwidth_constant = numerator / (kernel_time_constant * 1e6);
-  float effective_bandwidth_shared = 0.0f;
+  numerator = 8 * sizeof(unsigned char);
+  float effective_bandwidth_shared = numerator / (kernel_time_shared * 1e6);
 
   adiak::init(NULL);
   adiak::value("image_size", nx);
