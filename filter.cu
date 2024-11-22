@@ -288,6 +288,10 @@ int main(int argc, char *argv[]) {
   // TODO: Launch filter kernel
   filter_shared<<<grid, block>>>(d_a, d_b, nx, ny);
   cudaDeviceSynchronize();
+  cudaError_t error = cudaGetLastError();
+  if (error != cudaSuccess) {
+      std::cerr << "CUDA error during kernel launch: " << cudaGetErrorString(error) << std::endl;
+  }
 
   // shared timing
   cudaEventRecord(stop, 0);
