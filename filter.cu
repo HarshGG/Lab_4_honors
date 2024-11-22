@@ -15,7 +15,8 @@
  * @param nx image width
  * @param nx image length
  */
- __constant__ float fc[9];
+ const int filter_size = 9;
+ __constant__ float fc[filter_size];
 __global__ void filter_shared(unsigned char *a, unsigned char *b, int nx,
                               int ny) {
     __shared__ uchar4 shared_arr[16 + 2][64 + 2];
@@ -184,7 +185,7 @@ int main(int argc, char *argv[]) {
   std::vector<unsigned char> h_a(size, 0); // Input image
   std::vector<unsigned char> h_b_cpu(size, 0); // Output image (CPU)
   std::vector<unsigned char> h_b_gpu(size, 0); // Output image (GPU)
-  std::vector<float> h_c = {1.0f / 9.0f, 1.0f / 9.0f, 1.0f / 9.0f, 1.0f / 9.0f, 1.0f / 9.0f, 1.0f / 9.0f, 1.0f / 9.0f, 1.0f / 9.0f, 1.0f / 9.0f}; // Filter coefficients
+  std::vector<float> h_c = {filter_size, 1.0f / 9.0f}; // Filter coefficients
 
   // Initialize input image with random values
   for (int i = 0; i < size; ++i) {
@@ -203,11 +204,11 @@ int main(int argc, char *argv[]) {
   cudaMalloc(&d_a, size * sizeof(unsigned char));
   cudaMalloc(&d_b, size * sizeof(unsigned char));
   float* d_c = nullptr;
-  cudaMalloc(&d_c, 9 * sizeof(float));
-  cudaMemcpy(d_c, h_c.data(), 9 * sizeof(float), cudaMemcpyHostToDevice);
+  cudaMalloc(&d_c, filter_size * sizeof(float));
+  cudaMemcpy(d_c, h_c.data(), filter_size * sizeof(float), cudaMemcpyHostToDevice);
 
   // Copy data to device
-  cudaMemcpyToSymbol(fc, h_c.data(), 9 * sizeof(float));
+  cudaMemcpyToSymbol(fc, h_c.data(), filter_size * sizeof(float));
   cudaMemcpy(d_a, h_a.data(), size * sizeof(unsigned char), cudaMemcpyHostToDevice);
 
   // Define block and grid sizes
@@ -325,12 +326,13 @@ int main(int argc, char *argv[]) {
   cudaEventDestroy(start);
   cudaEventDestroy(stop);
 
-  float numerator = 9 * sizeof(unsigned char) + 1 * sizeof(unsigned char) + 9 * sizeof(float);
+  float numerator = filter_size * sizeof(unsigned char) + 1 * sizeof(unsigned char) + filter_size * sizeof(float);
   float effective_bandwidth_global = numerator / (kernel_time_global * 1e6);
 
-  numerator = 9 * sizeof(unsigned char) + 1 * sizeof(unsigned char);
+  numerator = filter_size * sizeof(unsigned char) + 1 * sizeof(unsigned char);
   float effective_bandwidth_constant = numerator / (kernel_time_constant * 1e6);
-  numerator = 8 * sizeof(unsigned char);
+
+  numerator = (filter_size - 1) * sizeof(unsigned char);
   float effective_bandwidth_shared = numerator / (kernel_time_shared * 1e6);
 
   adiak::init(NULL);
