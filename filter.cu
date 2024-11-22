@@ -158,11 +158,11 @@ void filter_CPU(const std::vector<unsigned char> &a,
 
       float v = 0.0f;
       int filter_index = 0;
-      for (int dx = -radius; dx <= radius; dx++) {
-        for (int dy = -radius; dy <= radius; dy++) {
-          float pixel_index = idx(std::min(std::max(0, y + dy), ny - 1), std::min(std::max(0, x + dx), nx - 1));
-          v += c[filter_index] * a[pixel_index];
-          filter_index++;
+      for (int dy = -radius; dy <= radius; ++dy) {
+        for (int dx = -radius; dx <= radius; ++dx) {
+          int py = std::min(std::max(0, y + dy), ny - 1);
+          int px = std::min(std::max(0, x + dx), nx - 1);
+          v += c[filter_index++] * a[idx(py, px)];
         }
       }
 
