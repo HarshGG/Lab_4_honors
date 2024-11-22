@@ -150,7 +150,7 @@ void filter_CPU(const std::vector<unsigned char> &a,
     // Separate index function for accessing the filter coefficients, using filter size
     auto filter_idx = [filter_size](int y, int x) { return y * filter_size + x; };
 
-    int radius = filterSize / 2; 
+    int radius = filter_size / 2; 
 
   for (int y = 0; y < ny; ++y) {
     for (int x = 0; x < nx; ++x) {
