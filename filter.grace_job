@@ -19,7 +19,7 @@
 #
 ##First Executable Line
 
-# image_size = $1
+image_size = $1
 # kernel_type = $2
 #
 module load CUDA/11.8.0    #load CUDA module
