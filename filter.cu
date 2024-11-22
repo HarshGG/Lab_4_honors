@@ -111,11 +111,13 @@ void filter_CPU(const std::vector<unsigned char> &a,
 }
 
 int main(int argc, char *argv[]) {
+  std::cout << "debug1" << std::endl;
   CALI_CXX_MARK_FUNCTION;
 
   // Create caliper ConfigManager object
   cali::ConfigManager mgr;
   mgr.start();
+  std::cout << "debug2" << std::endl;
 
   // Image size
   int nx = atoi(argv[1]);
