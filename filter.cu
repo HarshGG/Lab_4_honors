@@ -120,12 +120,11 @@ int main(int argc, char *argv[]) {
   // Image size
   int nx = atoi(argv[1]);
   int ny = atoi(argv[1]);
-  int type_of_filter = atoi(argv[2]);
   int size = nx * ny;
 
-  float kernel_time_global = 0.0f;
-  float kernel_time_constant = 0.0f;
-  float kernel_time_shared = 0.0f;
+  float kernel_time_global = 1.0f;
+  float kernel_time_constant = 1.0f;
+  float kernel_time_shared = 1.0f;
 
   std::vector<unsigned char> h_a(size, 0); // Input image
   std::vector<unsigned char> h_b_cpu(size, 0); // Output image (CPU)
@@ -179,18 +178,18 @@ int main(int argc, char *argv[]) {
   std::cout << "Global time: " << kernel_time_global / 1000.0f << "s\n";
 
   // constant timing
-  CALI_MARK_BEGIN("kernel_constant");
-  cudaEventRecord(start, 0);
+  // CALI_MARK_BEGIN("kernel_constant");
+  // cudaEventRecord(start, 0);
 
-  // TODO: Launch filter kernel
-  filter_constant<<<grid, block>>>(d_a, d_b, nx, ny);
+  // // TODO: Launch filter kernel
+  // filter_constant<<<grid, block>>>(d_a, d_b, nx, ny);
 
-  // constant timing
-  cudaEventRecord(stop, 0);
-  cudaEventSynchronize(stop);
-  CALI_MARK_END("kernel_constant");
-  cudaEventElapsedTime(&kernel_time_constant, start, stop);
-  std::cout << "GPU time: " << kernel_time_constant / 1000.0f << "s\n";
+  // // constant timing
+  // cudaEventRecord(stop, 0);
+  // cudaEventSynchronize(stop);
+  // CALI_MARK_END("kernel_constant");
+  // cudaEventElapsedTime(&kernel_time_constant, start, stop);
+  // std::cout << "GPU time: " << kernel_time_constant / 1000.0f << "s\n";
 
   // TODO: Copy result back to host
   cudaMemcpy(h_b_gpu.data(), d_b, size * sizeof(unsigned char), cudaMemcpyDeviceToHost);
