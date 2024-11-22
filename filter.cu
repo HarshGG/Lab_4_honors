@@ -287,12 +287,13 @@ int main(int argc, char *argv[]) {
 
   // TODO: Launch filter kernel
   filter_shared<<<grid, block>>>(d_a, d_b, nx, ny);
+  cudaDeviceSynchronize();
 
   // shared timing
   cudaEventRecord(stop, 0);
   cudaEventSynchronize(stop);
   CALI_MARK_END("kernel_shared");
-  float elapsed = 0.0f;
+  float elapsed = 2.0f;
   cudaEventElapsedTime(&elapsed, start, stop);
   kernel_time_shared = elapsed;
   std::cout << "Shared time: " << kernel_time_shared / 1000.0f << "s\n";
