@@ -151,15 +151,15 @@ void filter_CPU(const std::vector<unsigned char> &a,
 
   for (int y = 0; y < ny; ++y) {
     for (int x = 0; x < nx; ++x) {
-      int xl = std::max(0, x - 1);
-      int yl = std::max(0, y - 1);
-      int xh = std::min(nx - 1, x + 1);
-      int yh = std::min(ny - 1, y + 1);
+      // int xl = std::max(0, x - 1);
+      // int yl = std::max(0, y - 1);
+      // int xh = std::min(nx - 1, x + 1);
+      // int yh = std::min(ny - 1, y + 1);
 
       float v = 0.0f;
       int filter_index = 0;
-      for (int dx = -radius, dx <= radius; dx++) {
-        for (int dy = radius, dy <= radius; dy++) {
+      for (int dx = -radius; dx <= radius; dx++) {
+        for (int dy = radius; dy <= radius; dy++) {
           float pixel_index = idx(std::min(std::max(0, y + dy), ny - 1), std::min(std::max(0, x + dx), nx - 1));
           v += c[filter_index] * a[pixel_index];
         }
