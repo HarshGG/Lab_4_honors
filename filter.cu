@@ -171,6 +171,9 @@ void filter_CPU(const std::vector<unsigned char> &a,
             // Normalize and store the result
             uint result = static_cast<uint>(sum + 0.5f);
             b[idx(y, x)] = static_cast<unsigned char>(std::min(255, std::max(0, int(result))));
+            if (x < 5 && y < 5) {  // Print results for the first few pixels to debug
+              std::cout << "Pixel (" << y << ", " << x << "): Sum = " << sum << ", Result = " << result << std::endl;
+            }
         }
     }
 }
