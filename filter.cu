@@ -115,24 +115,27 @@ __global__ void filter_constant(unsigned char *a, unsigned char *b, int nx,
 
 __global__ void filter_global(unsigned char *a, unsigned char *b, int nx,
                               int ny, float *c) {
-  auto idx = [&nx](int y,int x){ return y*nx+x; };
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-  int x = blockIdx.x*blockDim.x+threadIdx.x;
-  int y = blockIdx.y*blockDim.y+threadIdx.y;
+    if (x >= nx || y >= ny) return;
 
-  if(x<0 || y <0 || x >= nx || y >= ny)return;
+    int radius = filter_size / 2;
+    float v = 0.0f;
 
-  int xl = max(0,x-1); int yl = max(0,y-1);
-  int xh = min(nx-1,x+1); int yh = min(ny-1,y+1);
+    for (int dy = -radius; dy <= radius; ++dy) {
+        for (int dx = -radius; dx <= radius; ++dx) {
+            int px = min(max(x + dx, 0), nx - 1);
+            int py = min(max(y + dy, 0), ny - 1);
+            int filter_idx = (dy + radius) * filter_size + (dx + radius);
+            int img_idx = py * nx + px;
+            v += c[filter_idx] * a[img_idx];
+        }
+    }
 
-  float v = c[0]*a[idx(yl,xl)] + c[1]*a[idx(yl,x)] + c[2]*a[idx(yl,xh)] +
-  c[3]*a[idx(y,xl)] + c[4]*a[idx(y,x)] + c[5]*a[idx(y,xh)] +
-  c[6]*a[idx(yh,xl)] + c[7]*a[idx(yh,x)] + c[8]*a[idx(yh,xh)];
-
-  uint f = (uint)(v+0.5f);
-
-  b[idx(y,x)] = (unsigned char)min(255,max(0,f));
-}
+    unsigned int f = static_cast<unsigned int>(v + 0.5f);
+    b[y * nx + x] = static_cast<unsigned char>(min(255, max(0, static_cast<int>(f))));
+  }
 
 /**
  * @brief CPU implementation for the filter
