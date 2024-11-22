@@ -15,6 +15,7 @@
  * @param nx image width
  * @param nx image length
  */
+ __constant__ float fc[9];
 __global__ void filter_shared(unsigned char *a, unsigned char *b, int nx,
                               int ny) {
     __shared__ uchar4 shared_arr[16 + 2][64 + 2];
@@ -81,7 +82,6 @@ __global__ void filter_shared(unsigned char *a, unsigned char *b, int nx,
  * @param nx image width
  * @param nx image length
  */
- __constant__ float fc[9];
 __global__ void filter_constant(unsigned char *a, unsigned char *b, int nx,
                                 int ny) {
     auto idx = [&nx](int y,int x){ return y*nx+x; };
