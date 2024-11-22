@@ -28,4 +28,4 @@ module load PAPI/6.0.0
 #
 
 CALI_CONFIG="spot(output=${image_size}-3.cali),cuda.gputime,profile.cuda" \
-./filter 
+./filter $image_size
