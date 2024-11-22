@@ -64,7 +64,7 @@ __global__ void filter_shared(unsigned char *a, unsigned char *b, int nx,
 
     for (int i = -1; i <= 1; i++) {
       for (int j = -1; j <= 1; j++) {
-        sum += d_filter[(i + 1) * 3 + (j + 1)] * shared_arr[thread_y + 1 + i][thread_x + 1 + j].x;
+        sum += f_c[(i + 1) * 3 + (j + 1)] * shared_arr[thread_y + 1 + i][thread_x + 1 + j].x;
       }
     }
 
