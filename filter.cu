@@ -143,7 +143,7 @@ __global__ void filter_global(unsigned char *a, unsigned char *b, int nx,
  * @param ny image length
  */
 void filter_CPU(std::vector<unsigned char> &b, const std::vector<unsigned char> &a, int nx, int ny,
-                 const std::vector<float> &c, int filter_size) {
+                 const std::vector<float> &c) {
   auto idx = [nx](int y, int x) { return y * nx + x; };
 
   int radius = filter_size / 2;
