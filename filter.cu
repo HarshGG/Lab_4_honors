@@ -118,9 +118,9 @@ int main(int argc, char *argv[]) {
   mgr.start();
 
   // Image size
-  int nx = argv[1];
-  int ny = argv[1];
-  int type_of_filter = argv[2];
+  int nx = atoi(argv[1]);
+  int ny = atoi(argv[1]);
+  int type_of_filter = atoi(argv[2]);
   int size = nx * ny;
 
   float kernel_time_global = 0.0f;
@@ -176,7 +176,7 @@ int main(int argc, char *argv[]) {
   cudaEventSynchronize(stop);
   CALI_MARK_END("kernel_global");
   cudaEventElapsedTime(&kernel_time_global, start, stop);
-  std::cout << "GPU time: " << gpu_elapsed / 1000.0f << "s\n";
+  std::cout << "Global time: " << kernel_time_global / 1000.0f << "s\n";
 
   // constant timing
   CALI_MARK_BEGIN("kernel_constant");
@@ -217,18 +217,21 @@ int main(int argc, char *argv[]) {
 
   float effective_bandwidth = 0.0f;
 
-  if(global) {
-    numerator = 9 * sizeof(unsigned char) + 1 * sizeof(unsigned char) + 9 * sizeof(float);
-    effective_bandwidth = numerator / (kernel_time * 1e6);
-  }
+  float numerator = 9 * sizeof(unsigned char) + 1 * sizeof(unsigned char) + 9 * sizeof(float);
+  float effective_bandwidth_global = numerator / (kernel_time_global * 1e6);
+
+  numerator = 9 * sizeof(unsigned char) + 1 * sizeof(unsigned char);
+  float effective_bandwidth_constant = numerator / (kernel_time_constant * 1e6);
+  float effective_bandwidth_shared = 0.0f;
 
   adiak::init(NULL);
-  adiak::value('image_size', nx);
-  adiak::value('kernel_time', kernel_time);
-  adiak::value('effective_bandwidth', effective_bandwidth);
-  adiak::value('kernel_time_global', kernel_time_global);
-  adiak::value('kernel_time_constant', kernel_time_constant);
-  adiak::value('kernel_time_shared', kernel_time_shared);
+  adiak::value("image_size", nx);
+  adiak::value("effective_bandwidth_global", effective_bandwidth_global);
+  adiak::value("effective_bandwidth_constant", effective_bandwidth_constant);
+  adiak::value("effective_bandwidth_shared", effective_bandwidth_shared);
+  adiak::value("kernel_time_global", kernel_time_global);
+  adiak::value("kernel_time_constant", kernel_time_constant);
+  adiak::value("kernel_time_shared", kernel_time_shared);
   
 
   // Flush Caliper output
