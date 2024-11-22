@@ -148,7 +148,7 @@ void filter_CPU(const std::vector<unsigned char> &a,
     
     auto idx = [&nx](int y, int x) { return y * nx + x; };
     // Separate index function for accessing the filter coefficients, using filter size
-    auto filter_idx = [filter_size](int y, int x) -> int { return y * filter_size + x; };
+    // auto filter_idx = [filter_size](int y, int x) -> int { return y * filter_size + x; };
 
     int radius = filter_size / 2; 
 
@@ -163,7 +163,7 @@ void filter_CPU(const std::vector<unsigned char> &a,
               int sourceY = std::min(std::max(y + dy, 0), ny - 1);
               
               // Calculate the index for the filter coefficient
-              int filterIndex = filter_idx(dy + radius, dx + radius);
+              int filterIndex = ((dy + radius) * filter_size) + dx + radius;
 
               // Accumulate the weighted pixel intensity
               v += c[filterIndex] * a[idx(sourceY, sourceX)];
