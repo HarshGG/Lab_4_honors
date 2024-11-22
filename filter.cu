@@ -264,8 +264,8 @@ int main(int argc, char *argv[]) {
   // TODO: Copy result back to host
   cudaMemcpy(h_b_gpu.data(), d_b, size * sizeof(unsigned char), cudaMemcpyDeviceToHost);
 
-  cudaFree(d_a);
-  cudaFree(d_b);
+  // cudaFree(d_a);
+  // cudaFree(d_b);
 
   // TODO: Check result
   flag = true;
