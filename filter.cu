@@ -183,6 +183,8 @@ int main(int argc, char *argv[]) {
   int ny = nx;
   int size = nx * ny;
 
+  std::cout << filter_size << " " << nx << std::endl;
+
   float kernel_time_global = 1.0f;
   float kernel_time_constant = 1.0f;
   float kernel_time_shared = 2.0f;
