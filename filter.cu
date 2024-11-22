@@ -111,17 +111,16 @@ void filter_CPU(const std::vector<unsigned char> &a,
 }
 
 int main(int argc, char *argv[]) {
-  std::cout << "debug1" << std::endl;
   CALI_CXX_MARK_FUNCTION;
 
   // Create caliper ConfigManager object
   cali::ConfigManager mgr;
   mgr.start();
-  std::cout << "debug2" << std::endl;
+  std::cout << argc << " " << argv[1] << std::endl;
 
   // Image size
   int nx = atoi(argv[1]);
-  int ny = atoi(argv[1]);
+  int ny = nx;
   std::cout << nx << " " << ny << std::endl;
   int size = nx * ny;
 
@@ -216,8 +215,6 @@ int main(int argc, char *argv[]) {
 
   cudaEventDestroy(start);
   cudaEventDestroy(stop);
-
-  float effective_bandwidth = 0.0f;
 
   float numerator = 9 * sizeof(unsigned char) + 1 * sizeof(unsigned char) + 9 * sizeof(float);
   float effective_bandwidth_global = numerator / (kernel_time_global * 1e6);
