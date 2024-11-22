@@ -145,7 +145,10 @@ __global__ void filter_global(unsigned char *a, unsigned char *b, int nx,
 void filter_CPU(const std::vector<unsigned char> &a,
                 std::vector<unsigned char> &b, int nx, int ny,
                 const std::vector<float> &c) {
-  auto idx = [&nx](int y, int x) { return y * nx + x; };
+    
+    auto idx = [&nx](int y, int x) { return y * nx + x; };
+    // Separate index function for accessing the filter coefficients, using filter size
+    auto filter_idx = [filterSize](int y, int x) { return y * filterSize + x; };
 
   for (int y = 0; y < ny; ++y) {
     for (int x = 0; x < nx; ++x) {
@@ -158,14 +161,14 @@ void filter_CPU(const std::vector<unsigned char> &a,
               int sourceY = std::min(std::max(y + dy, 0), ny - 1);
               
               // Calculate the index for the filter coefficient
-              int filterIndex = idx(dy + radius, dx + radius, filterSize);
+              int filterIndex = filter_idx(dy + radius, dx + radius);
 
               // Accumulate the weighted pixel intensity
               v += c[filterIndex] * a[idx(sourceY, sourceX)];
               if (x < 3 && y < 3) {  // Limit output to the first few pixels
                   std::cout << "Pixel (" << sourceY << ", " << sourceX << ") Coeff: " 
                             << c[filterIndex] << " Pixel Value: " << a[idx(sourceY, sourceX)] 
-                            << " Contrib: " << (coefficient * pixelValue) << " Current Sum: " << v << std::endl;
+                            << " Contrib: " << (c[filterIndex] * a[idx(sourceY, sourceX)]) << " Current Sum: " << v << std::endl;
               }
           }
       }
