@@ -282,7 +282,7 @@ int main(int argc, char *argv[]) {
   }
 
   // shared timing
-  CALI_MARK_BEGIN("kernel_constant");
+  CALI_MARK_BEGIN("kernel_shared");
   cudaEventRecord(start, 0);
 
   // TODO: Launch filter kernel
