@@ -15,8 +15,8 @@
  * @param nx image width
  * @param nx image length
  */
- const int filter_size = 9;
- __constant__ float fc[9];
+ const int filter_size = 25;
+ __constant__ float fc[25];
 __global__ void filter_shared(unsigned char *a, unsigned char *b, int nx,
                               int ny) {
     __shared__ uchar4 shared_arr[16 + 2][64 + 2];
