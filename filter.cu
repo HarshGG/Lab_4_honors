@@ -147,6 +147,8 @@ void filter_CPU(const std::vector<unsigned char> &a,
                 const std::vector<float> &c) {
   auto idx = [&nx](int y, int x) { return y * nx + x; };
 
+  int radius = filter_size / 2;
+
   for (int y = 0; y < ny; ++y) {
     for (int x = 0; x < nx; ++x) {
       int xl = std::max(0, x - 1);
@@ -154,10 +156,19 @@ void filter_CPU(const std::vector<unsigned char> &a,
       int xh = std::min(nx - 1, x + 1);
       int yh = std::min(ny - 1, y + 1);
 
-      float v =
-          c[0] * a[idx(yl, xl)] + c[1] * a[idx(yl, x)] + c[2] * a[idx(yl, xh)] +
-          c[3] * a[idx(y, xl)] + c[4] * a[idx(y, x)] + c[5] * a[idx(y, xh)] +
-          c[6] * a[idx(yh, xl)] + c[7] * a[idx(yh, x)] + c[8] * a[idx(yh, xh)];
+      float v = 0.0f;
+      int filter_index = 0;
+      for (int dx = -radius, dx <= radius; dx++) {
+        for (int dy = radius, dy <= radius; dy++) {
+          float pixel_index = idx(std::min(std::max(0, y + dy), ny - 1), std::min(std::max(0, x + dx), nx - 1));
+          v += c[filter_index] * a[pixel_index];
+        }
+      }
+
+      // float v =
+      //     c[0] * a[idx(yl, xl)] + c[1] * a[idx(yl, x)] + c[2] * a[idx(yl, xh)] +
+      //     c[3] * a[idx(y, xl)] + c[4] * a[idx(y, x)] + c[5] * a[idx(y, xh)] +
+      //     c[6] * a[idx(yh, xl)] + c[7] * a[idx(yh, x)] + c[8] * a[idx(yh, xh)];
 
       uint f = (uint)(v + 0.5f);
       b[idx(y, x)] =
