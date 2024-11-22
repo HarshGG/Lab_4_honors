@@ -15,8 +15,8 @@
  * @param nx image width
  * @param nx image length
  */
- const int filter_size = 9;
- __constant__ float fc[9];
+ const int filter_size = 25;
+ __constant__ float fc[25];
 __global__ void filter_shared(unsigned char *a, unsigned char *b, int nx,
                               int ny) {
     __shared__ uchar4 shared_arr[16 + 2][64 + 2];
@@ -145,25 +145,34 @@ __global__ void filter_global(unsigned char *a, unsigned char *b, int nx,
 void filter_CPU(const std::vector<unsigned char> &a,
                 std::vector<unsigned char> &b, int nx, int ny,
                 const std::vector<float> &c) {
-  auto idx = [&nx](int y, int x) { return y * nx + x; };
+    auto idx = [&nx](int y, int x) { return y * nx + x; };
+    int radius = filterSize / 2; // Calculate the radius of the filter
 
-  for (int y = 0; y < ny; ++y) {
-    for (int x = 0; x < nx; ++x) {
-      int xl = std::max(0, x - 1);
-      int yl = std::max(0, y - 1);
-      int xh = std::min(nx - 1, x + 1);
-      int yh = std::min(ny - 1, y + 1);
+    // Loop over each pixel in the output image
+    for (int y = 0; y < ny; ++y) {
+        for (int x = 0; x < nx; ++x) {
+            float sum = 0.0f;
 
-      float v =
-          c[0] * a[idx(yl, xl)] + c[1] * a[idx(yl, x)] + c[2] * a[idx(yl, xh)] +
-          c[3] * a[idx(y, xl)] + c[4] * a[idx(y, x)] + c[5] * a[idx(y, xh)] +
-          c[6] * a[idx(yh, xl)] + c[7] * a[idx(yh, x)] + c[8] * a[idx(yh, xh)];
+            // Apply the filter to the current pixel
+            for (int dy = -radius; dy <= radius; ++dy) {
+                for (int dx = -radius; dx <= radius; ++dx) {
+                    // Calculate the index for the filter coefficient
+                    int filterIndex = (dy + radius) * filterSize + (dx + radius);
+                    
+                    // Calculate the source pixel location, clamping to boundaries
+                    int sourceX = std::min(std::max(x + dx, 0), nx - 1);
+                    int sourceY = std::min(std::max(y + dy, 0), ny - 1);
 
-      uint f = (uint)(v + 0.5f);
-      b[idx(y, x)] =
-          (unsigned char)std::min(255, std::max(0, static_cast<int>(f)));
+                    // Accumulate the weighted pixel intensity
+                    sum += c[filterIndex] * a[idx(sourceY, sourceX)];
+                }
+            }
+
+            // Normalize and store the result
+            uint result = static_cast<uint>(sum + 0.5f);
+            b[idx(y, x)] = static_cast<unsigned char>(std::min(255, std::max(0, int(result))));
+        }
     }
-  }
 }
 
 int main(int argc, char *argv[]) {
