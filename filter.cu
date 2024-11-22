@@ -179,7 +179,7 @@ int main(int argc, char *argv[]) {
 
   float kernel_time_global = 1.0f;
   float kernel_time_constant = 1.0f;
-  float kernel_time_shared = 1.0f;
+  float kernel_time_shared = -1.0f;
 
   std::vector<unsigned char> h_a(size, 0); // Input image
   std::vector<unsigned char> h_b_cpu(size, 0); // Output image (CPU)
