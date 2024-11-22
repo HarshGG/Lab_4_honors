@@ -185,8 +185,8 @@ int main(int argc, char *argv[]) {
   std::vector<unsigned char> h_a(size, 0); // Input image
   std::vector<unsigned char> h_b_cpu(size, 0); // Output image (CPU)
   std::vector<unsigned char> h_b_gpu(size, 0); // Output image (GPU)
-  std::vector<float> h_c = {filter_size, 1.0f / 9.0f}; // Filter coefficients
-
+  int filter_size = 25;
+  std::vector<float> h_c(filter_size, 1.0f / filter_size);
   // Initialize input image with random values
   for (int i = 0; i < size; ++i) {
       h_a[i] = rand() % 256;
