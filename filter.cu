@@ -178,20 +178,33 @@ int main(int argc, char *argv[]) {
   CALI_MARK_END("kernel_global");
   cudaEventElapsedTime(&kernel_time_global, start, stop);
   std::cout << "Global time: " << kernel_time_global / 1000.0f << "s\n";
+  // TODO: Check result
+  bool flag = true;
+  for (int i = 0; i < size; ++i) {
+    if (h_b_cpu[i] != h_b_gpu[i]) {
+      std::cout << "Verification failed at index " << i << "CPU: " << (int)h_b_cpu[i] << ", GPU: " << (int)h_b_gpu[i] << std::endl;
+      flag = false;
+      break;
+    }
+  }
+
+  if (flag) {
+    std::cout << "Verification passed" << std::endl;
+  }
 
   // constant timing
-  // CALI_MARK_BEGIN("kernel_constant");
-  // cudaEventRecord(start, 0);
+  CALI_MARK_BEGIN("kernel_constant");
+  cudaEventRecord(start, 0);
 
-  // // TODO: Launch filter kernel
-  // filter_constant<<<grid, block>>>(d_a, d_b, nx, ny);
+  // TODO: Launch filter kernel
+  filter_constant<<<grid, block>>>(d_a, d_b, nx, ny);
 
-  // // constant timing
-  // cudaEventRecord(stop, 0);
-  // cudaEventSynchronize(stop);
-  // CALI_MARK_END("kernel_constant");
-  // cudaEventElapsedTime(&kernel_time_constant, start, stop);
-  // std::cout << "GPU time: " << kernel_time_constant / 1000.0f << "s\n";
+  // constant timing
+  cudaEventRecord(stop, 0);
+  cudaEventSynchronize(stop);
+  CALI_MARK_END("kernel_constant");
+  cudaEventElapsedTime(&kernel_time_constant, start, stop);
+  std::cout << "Constant time: " << kernel_time_constant / 1000.0f << "s\n";
 
   // TODO: Copy result back to host
   cudaMemcpy(h_b_gpu.data(), d_b, size * sizeof(unsigned char), cudaMemcpyDeviceToHost);
@@ -203,7 +216,7 @@ int main(int argc, char *argv[]) {
   bool flag = true;
   for (int i = 0; i < size; ++i) {
     if (h_b_cpu[i] != h_b_gpu[i]) {
-      std::cout << "Verification failed at index " << i << "CPU: " << (int)h_b_cpu[i] << ", GPU: " << (int)h_b_gpu[i] << std::endl;
+      std::cout << "Verification failed at index " << i << "CPU: " << (int)h_b_cpu[i] << ", Constant: " << (int)h_b_gpu[i] << std::endl;
       flag = false;
       break;
     }
