@@ -292,7 +292,9 @@ int main(int argc, char *argv[]) {
   cudaEventRecord(stop, 0);
   cudaEventSynchronize(stop);
   CALI_MARK_END("kernel_shared");
-  cudaEventElapsedTime(&kernel_time_shared, start, stop);
+  float elapsed = 0.0f;
+  cudaEventElapsedTime(&elapsed, start, stop);
+  kernel_time_shared = elapsed;
   std::cout << "Shared time: " << kernel_time_shared / 1000.0f << "s\n";
 
   // TODO: Copy result back to host
