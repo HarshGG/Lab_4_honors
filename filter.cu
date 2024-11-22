@@ -16,7 +16,7 @@
  * @param nx image length
  */
  const int filter_size = 9;
- __constant__ float fc[filter_size];
+ __constant__ float fc[9];
 __global__ void filter_shared(unsigned char *a, unsigned char *b, int nx,
                               int ny) {
     __shared__ uchar4 shared_arr[16 + 2][64 + 2];
@@ -185,7 +185,6 @@ int main(int argc, char *argv[]) {
   std::vector<unsigned char> h_a(size, 0); // Input image
   std::vector<unsigned char> h_b_cpu(size, 0); // Output image (CPU)
   std::vector<unsigned char> h_b_gpu(size, 0); // Output image (GPU)
-  int filter_size = 25;
   std::vector<float> h_c(filter_size, 1.0f / filter_size);
   // Initialize input image with random values
   for (int i = 0; i < size; ++i) {
