@@ -146,7 +146,7 @@ void filter_CPU(const std::vector<unsigned char> &a,
                 std::vector<unsigned char> &b, int nx, int ny,
                 const std::vector<float> &c) {
     auto idx = [&nx](int y, int x) { return y * nx + x; };
-    int radius = filterSize / 2; // Calculate the radius of the filter
+    int radius = filter_size / 2; // Calculate the radius of the filter
 
     // Loop over each pixel in the output image
     for (int y = 0; y < ny; ++y) {
@@ -157,7 +157,7 @@ void filter_CPU(const std::vector<unsigned char> &a,
             for (int dy = -radius; dy <= radius; ++dy) {
                 for (int dx = -radius; dx <= radius; ++dx) {
                     // Calculate the index for the filter coefficient
-                    int filterIndex = (dy + radius) * filterSize + (dx + radius);
+                    int filterIndex = (dy + radius) * filter_size + (dx + radius);
                     
                     // Calculate the source pixel location, clamping to boundaries
                     int sourceX = std::min(std::max(x + dx, 0), nx - 1);
