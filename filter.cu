@@ -120,7 +120,7 @@ int main(int argc, char *argv[]) {
   // Image size
   int nx = atoi(argv[1]);
   int ny = atoi(argv[1]);
-  std::cout << nx << " " ny << std::endl;
+  std::cout << nx << " " << ny << std::endl;
   int size = nx * ny;
 
   float kernel_time_global = 1.0f;
