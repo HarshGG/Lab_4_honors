@@ -213,7 +213,7 @@ int main(int argc, char *argv[]) {
   cudaFree(d_b);
 
   // TODO: Check result
-  bool flag = true;
+  flag = true;
   for (int i = 0; i < size; ++i) {
     if (h_b_cpu[i] != h_b_gpu[i]) {
       std::cout << "Verification failed at index " << i << "CPU: " << (int)h_b_cpu[i] << ", Constant: " << (int)h_b_gpu[i] << std::endl;
